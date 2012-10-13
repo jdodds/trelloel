@@ -29,13 +29,16 @@
                             "/board/" id
                            "?key=" trelloel--application-key))
          (json-object-type 'plist)
+         (board nil)
          (board-buffer (url-retrieve-synchronously board-url)))
     (save-excursion
       (set-buffer board-buffer)
       (goto-char (point-min))
       (search-forward "{")
       (backward-char)
-      (json-read))))
+      (setq board (json-read))
+      (kill-buffer (current-buffer)))
+    board))
 
 (defun trelloel--get-oauth-token (app-name)
   (unless trelloel-oauth-token
