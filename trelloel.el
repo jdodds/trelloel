@@ -2,17 +2,25 @@
 
 (setq trelloel--application-key "dd89b2a1fb793c17fb2b72f01a4d3565"
       trelloel--base-api-url "https://api.trello.com"
-      trelloel--api-version "1"
-      trelloel--oauth-secret
-      "4f407114d66909a5a16f3d984f4b7197f491fa5e21e458c45d0c57f64cba3057"
-      trelloel--oauth-token nil)
+      trelloel--api-version "1")
+
 
 (defgroup trelloel nil
   "settings for working with the trello API")
 
 (defcustom trelloel-username nil
   "Your username on trello."
+  :type '(string)
   :group 'trelloel)
+
+(defgroup trelloel-authorization nil
+  "settings related to authorizing with trello"
+  :group 'trelloel)
+
+(defcustom trelloel-oauth-token nil
+  "Token used for OAuth authentication"
+  :type '(string)
+  :group 'trelloel-authorization)
 
 
 (defun trelloel-get-board (id)
@@ -30,14 +38,15 @@
       (json-read))))
 
 (defun trelloel--get-oauth-token (app-name)
-  (unless trelloel--oauth-token
-    (let* ((auth-url
-            (concat "https://trello.com/1/authorize?"
-                    "key=" trelloel--application-key
-                    "&name=" (url-hexify-string app-name)
-                    "&expiration=never"
-                    "&response_type=token"
-                    "&scope=read,write")))
+  (unless trelloel-oauth-token
+    (let ((auth-url
+           (concat "https://trello.com/1/authorize?"
+                   "key=" trelloel--application-key
+                   "&name=" (url-hexify-string app-name)
+                   "&expiration=never"
+                   "&response_type=token"
+                   "&scope=read,write")))
       (browse-url auth-url))
-    (setq trelloel--oauth-token (read-from-minibuffer "Token: ")))
-  trelloel--oauth-token)
+    (custom-set-variables
+     '(trelloel-oauth-token (read-from-minibuffer "Token: "))))
+  trelloel-oauth-token)
