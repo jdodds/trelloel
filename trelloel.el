@@ -10,7 +10,7 @@
 
 (defcustom trelloel-username nil
   "Your username on trello."
-  :type '(string)
+  :type 'string
   :group 'trelloel)
 
 (defgroup trelloel-authorization nil
@@ -19,7 +19,7 @@
 
 (defcustom trelloel-oauth-token nil
   "Token used for OAuth authentication"
-  :type '(string)
+  :type 'string
   :group 'trelloel-authorization)
 
 
