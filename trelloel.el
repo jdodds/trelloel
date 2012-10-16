@@ -50,6 +50,7 @@
                    "&response_type=token"
                    "&scope=read,write")))
       (browse-url auth-url))
-    (custom-set-variables
-     '(trelloel-oauth-token (read-from-minibuffer "Token: "))))
+    (let ((token (read-from-minibuffer "Token: ")))
+      (custom-set-variables
+       `(trelloel-oauth-token ,token))))
   trelloel-oauth-token)
