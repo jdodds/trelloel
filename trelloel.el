@@ -54,3 +54,22 @@
       (custom-set-variables
        `(trelloel-oauth-token ,token))))
   trelloel-oauth-token)
+
+(defun trelloel-get-users-boards (app-name)
+  (let* ((oauth-token (trelloel--get-oauth-token app-name))
+         (request-url (concat trelloel--base-api-url
+                              "/" trelloel--api-version
+                              "/members/my/boards"
+                              "?key=" trelloel--application-key
+                              "&token=" oauth-token))
+         (json-object-type 'plist)
+         (boards nil)
+         (boards-buffer (url-retrieve-synchronously request-url)))
+    (save-excursion
+      (set-buffer boards-buffer)
+      (goto-char (point-min))
+      (search-forward "{")
+      (backward-char)
+      (setq boards (json-read))
+      (kill-buffer (current-buffer)))
+    boards))
