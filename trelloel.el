@@ -103,4 +103,5 @@
       (kill-buffer (current-buffer)))
     boards))
 
+(provide 'trelloel)
 ;;; trellol.el ends here
