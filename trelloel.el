@@ -63,15 +63,31 @@
       (kill-buffer (current-buffer)))
     parsed-json))
 
+(defun trelloel--request-parameters (&optional parts)
+  (let ((parameters (concat "?key=" trelloel--application-key)))
+    (if parts
+        (concat parameters (mapconcat
+                            (lambda (item)
+                              (concat "&" (car item) "=" (cdr item)))
+                            parts ""))
+      parameters)))
+
+(defun trelloel--request-url (section &optional parts)
+  (let ((request-parameters (trelloel--request-parameters parts)))
+    (concat trelloel--base-api-url
+          "/" trelloel--api-version
+          section
+          request-parameters)))
+
 (defun trelloel--get-oauth-token (app-name)
   (unless trelloel-oauth-token
     (let ((auth-url
            (concat "https://trello.com/1/authorize?"
-                   "key=" trelloel--application-key
-                   "&name=" (url-hexify-string app-name)
-                   "&expiration=never"
-                   "&response_type=token"
-                   "&scope=read,write")))
+                   (trelloel--request-parameters
+                    `(("name" . ,app-name)
+                      ("expiration" . "never")
+                      ("response_type" . "token")
+                      ("scope" . "read,write"))))))
       (browse-url auth-url))
     (let ((token (read-from-minibuffer "Token: ")))
       (custom-set-variables
@@ -79,20 +95,15 @@
   trelloel-oauth-token)
 
 (defun trelloel-get-board (id)
-  (let* ((board-url (concat trelloel--base-api-url
-                            "/" trelloel--api-version
-                            "/board/" id
-                            "?key=" trelloel--application-key))
+  (let* ((board-url (trelloel--request-url (concat "/board/" id)))
          (json-object-type 'plist))
     (trelloel--read-json-buffer (url-retrieve-synchronously board-url))))
 
 (defun trelloel-get-users-boards (app-name)
   (let* ((oauth-token (trelloel--get-oauth-token app-name))
-         (request-url (concat trelloel--base-api-url
-                              "/" trelloel--api-version
-                              "/members/my/boards"
-                              "?key=" trelloel--application-key
-                              "&token=" oauth-token))
+         (request-url (trelloel---request-url
+                       "/members/my/boards"
+                       `("token" . ,oauth-token)))
          (json-object-type 'plist))
     (trelloel--read-json-buffer (url-retrieve-synchronously request-url))))
 
