@@ -85,7 +85,7 @@
 (defun trelloel--get-oauth-token (app-name)
   (unless trelloel-oauth-token
     (let ((auth-url
-           (concat "https://trello.com/1/authorize?"
+           (concat "https://trello.com/1/authorize"
                    (trelloel--request-parameters
                     `(("name" . ,app-name)
                       ("expiration" . "never")
