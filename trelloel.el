@@ -1,3 +1,33 @@
+;;; trelloel.el --- Communication layer for the Trello API
+
+;; Copyright (C) 2012 Jeremiah Dodds
+
+;; Author: Jeremiah Dodds <jeremiah.dodds@gmail.com>
+;; Keywords: comm
+;; Package-Requires: ((json "1.2"))
+;; Version: 0.1alpha
+
+;; This file is not a part of GNU Emacs.
+
+;; trelloel.el is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; trelloel.el is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with trelloel.el.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This package provides access to the Trello api.
+
+;;; Code:
+
 (require 'json)
 
 (setq trelloel--application-key "dd89b2a1fb793c17fb2b72f01a4d3565"
@@ -21,7 +51,6 @@
   "Token used for OAuth authentication"
   :type 'string
   :group 'trelloel-authorization)
-
 
 (defun trelloel-get-board (id)
   (let* ((board-url (concat trelloel--base-api-url
@@ -73,3 +102,5 @@
       (setq boards (json-read))
       (kill-buffer (current-buffer)))
     boards))
+
+;;; trellol.el ends here
