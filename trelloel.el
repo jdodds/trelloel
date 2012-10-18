@@ -79,6 +79,9 @@
           section
           request-parameters)))
 
+(defun trelloel--api-result (api-url)
+  (trelloel--read-json-buffer (url-retrieve-synchronously api-url)))
+
 (defun trelloel--get-oauth-token (app-name)
   (unless trelloel-oauth-token
     (let ((auth-url
@@ -97,7 +100,7 @@
 (defun trelloel-get-board (id)
   (let* ((board-url (trelloel--request-url (concat "/board/" id)))
          (json-object-type 'plist))
-    (trelloel--read-json-buffer (url-retrieve-synchronously board-url))))
+    (trelloel--api-result board-url)))
 
 (defun trelloel-get-users-boards (app-name)
   (let* ((oauth-token (trelloel--get-oauth-token app-name))
@@ -105,7 +108,7 @@
                        "/members/my/boards"
                        `("token" . ,oauth-token)))
          (json-object-type 'plist))
-    (trelloel--read-json-buffer (url-retrieve-synchronously request-url))))
+    (trelloel--api-result request-url)))
 
 
 
