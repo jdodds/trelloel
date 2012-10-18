@@ -52,22 +52,16 @@
   :type 'string
   :group 'trelloel-authorization)
 
-(defun trelloel-get-board (id)
-  (let* ((board-url (concat trelloel--base-api-url
-                            "/" trelloel--api-version
-                            "/board/" id
-                           "?key=" trelloel--application-key))
-         (json-object-type 'plist)
-         (board nil)
-         (board-buffer (url-retrieve-synchronously board-url)))
+(defun trelloel--read-json-buffer (json-buffer)
+  (let ((parsed-json nil))
     (save-excursion
-      (set-buffer board-buffer)
+      (set-buffer json-buffer)
       (goto-char (point-min))
       (search-forward "{")
       (backward-char)
-      (setq board (json-read))
+      (setq parsed-json (json-read))
       (kill-buffer (current-buffer)))
-    board))
+    parsed-json))
 
 (defun trelloel--get-oauth-token (app-name)
   (unless trelloel-oauth-token
@@ -84,6 +78,14 @@
        `(trelloel-oauth-token ,token))))
   trelloel-oauth-token)
 
+(defun trelloel-get-board (id)
+  (let* ((board-url (concat trelloel--base-api-url
+                            "/" trelloel--api-version
+                            "/board/" id
+                            "?key=" trelloel--application-key))
+         (json-object-type 'plist))
+    (trelloel--read-json-buffer (url-retrieve-synchronously board-url))))
+
 (defun trelloel-get-users-boards (app-name)
   (let* ((oauth-token (trelloel--get-oauth-token app-name))
          (request-url (concat trelloel--base-api-url
@@ -91,17 +93,10 @@
                               "/members/my/boards"
                               "?key=" trelloel--application-key
                               "&token=" oauth-token))
-         (json-object-type 'plist)
-         (boards nil)
-         (boards-buffer (url-retrieve-synchronously request-url)))
-    (save-excursion
-      (set-buffer boards-buffer)
-      (goto-char (point-min))
-      (search-forward "{")
-      (backward-char)
-      (setq boards (json-read))
-      (kill-buffer (current-buffer)))
-    boards))
+         (json-object-type 'plist))
+    (trelloel--read-json-buffer (url-retrieve-synchronously request-url))))
+
+
 
 (provide 'trelloel)
 ;;; trellol.el ends here
