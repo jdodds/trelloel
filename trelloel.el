@@ -68,6 +68,13 @@
           section
           request-parameters)))
 
+(defun trelloel--authorized-request-url (section &optional parts)
+  (let* ((oauth-token (trelloel--get-oauth-token)))
+    (trelloel--request-url
+     section
+     (append `(("token" . ,oauth-token)) parts))))
+
+
 (defun trelloel--api-result (api-url)
   (trelloel--read-json-buffer (url-retrieve-synchronously api-url)))
 
@@ -77,19 +84,15 @@
     (trelloel--api-result board-url)))
 
 (defun trelloel-get-members-boards ()
-  (let* ((oauth-token (trelloel--get-oauth-token))
-         (request-url (trelloel--request-url
-                       "/members/my/boards"
-                       `(("token" . ,oauth-token)
-                         ("filter" . "open"))))
-         (json-object-type 'plist))
+  (let ((request-url (trelloel--authorized-request-url
+                      "/members/my/boards"
+                      '(("filter" . "open"))))
+        (json-object-type 'plist))
     (trelloel--api-result request-url)))
 
 (defun trelloel-get-boards-cards (board)
-  (let* ((oauth-token (trelloel--get-oauth-token))
-         (request-url (trelloel--request-url
-                       (concat "/boards/" board "/cards")
-                       `(("token" . ,oauth-token)))))
+  (let ((request-url (trelloel--authorized-request-url
+                      (concat "/boards/" board "/cards"))))
     (trelloel--api-result request-url)))
 
 
