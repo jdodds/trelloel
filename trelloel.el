@@ -83,18 +83,21 @@
          (json-object-type 'plist))
     (trelloel--api-result board-url)))
 
-(defun trelloel-get-members-boards ()
+(defun trelloel--authorized-api-result (section &optional parts)
   (let ((request-url (trelloel--authorized-request-url
-                      "/members/my/boards"
-                      '(("filter" . "open"))))
+                      section
+                      parts))
         (json-object-type 'plist))
     (trelloel--api-result request-url)))
 
-(defun trelloel-get-boards-cards (board)
-  (let ((request-url (trelloel--authorized-request-url
-                      (concat "/boards/" board "/cards"))))
-    (trelloel--api-result request-url)))
+(defun trelloel-get-members-boards ()
+  (trelloel--authorized-api-result
+   "/members/my/boards"
+   '(("filter" . "open"))))
 
+(defun trelloel-get-boards-cards (board)
+  (trelloel--authorized-api-result
+   (concat "/boards/" board "/cards")))
 
 (provide 'trelloel)
 
