@@ -78,17 +78,16 @@
 (defun trelloel--api-result (api-url)
   (trelloel--read-json-buffer (url-retrieve-synchronously api-url)))
 
-(defun trelloel-get-board (id)
-  (let* ((board-url (trelloel--request-url (concat "/board/" id)))
-         (json-object-type 'plist))
-    (trelloel--api-result board-url)))
-
 (defun trelloel--authorized-api-result (section &optional parts)
   (let ((request-url (trelloel--authorized-request-url
                       section
                       parts))
         (json-object-type 'plist))
     (trelloel--api-result request-url)))
+
+(defun trelloel-get-board (id)
+  (trelloel--authorized-api-result
+   (concat "/board/" id)))
 
 (defun trelloel-get-members-boards ()
   (trelloel--authorized-api-result
