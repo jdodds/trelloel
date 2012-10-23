@@ -34,6 +34,10 @@
       trelloel--base-api-url "https://api.trello.com"
       trelloel--api-version "1")
 
+(defvar trelloel--oauth-token nil "token used in oauth authentication")
+
+
+
 
 (defgroup trelloel nil
   "settings for working with the trello API")
@@ -42,15 +46,6 @@
   "Your username on trello."
   :type 'string
   :group 'trelloel)
-
-(defgroup trelloel-authorization nil
-  "settings related to authorizing with trello"
-  :group 'trelloel)
-
-(defcustom trelloel-oauth-token nil
-  "Token used for OAuth authentication"
-  :type 'string
-  :group 'trelloel-authorization)
 
 (defun trelloel--read-json-buffer (json-buffer)
   (let ((parsed-json nil))
@@ -73,6 +68,7 @@
       parameters)))
 
 (defun trelloel--request-url (section &optional parts)
+  (message (concat section ":  " (prin1-to-string parts)))
   (let ((request-parameters (trelloel--request-parameters parts)))
     (concat trelloel--base-api-url
           "/" trelloel--api-version
@@ -82,31 +78,52 @@
 (defun trelloel--api-result (api-url)
   (trelloel--read-json-buffer (url-retrieve-synchronously api-url)))
 
-(defun trelloel--get-oauth-token (app-name)
-  (unless trelloel-oauth-token
-    (let ((auth-url
-           (concat "https://trello.com/1/authorize"
-                   (trelloel--request-parameters
-                    `(("name" . ,app-name)
-                      ("expiration" . "never")
-                      ("response_type" . "token")
-                      ("scope" . "read,write"))))))
-      (browse-url auth-url))
-    (let ((token (read-from-minibuffer "Token: ")))
-      (custom-set-variables
-       `(trelloel-oauth-token ,token))))
-  trelloel-oauth-token)
+(defun trelloel--get-oauth-token ()
+  (unless trelloel--oauth-token
+    (trelloel--load-oauth-token))
+  (trelloel--read-oauth-token))
+
+(defvar trelloel--oauth-token-file
+  (expand-file-name
+   (concat user-emacs-directory "trelloel-oauth-token")))
+
+(defun trelloel--load-oauth-token ()
+  (unless (file-exists-p trelloel--oauth-token-file)
+    (trelloel--set-oauth-token))
+  (trelloel--read-oauth-token))
+
+(defun trelloel--set-oauth-token ()
+  (let ((auth-url
+         (concat "https://trello.com/1/authorize"
+                 (trelloel--request-parameters
+                  '(("expiration" . "never")
+                    ("response_type" . "token")
+                    ("scope" . "read,write"))))))
+    (browse-url auth-url))
+  (let ((token (read-from-minibuffer "Token: ")))
+    (trelloel--save-oauth-token token)))
+
+(defun trelloel--save-oauth-token (token)
+  (with-temp-buffer
+    (insert token)
+    (write-region (point-min) (point-max) trelloel--oauth-token-file)))
+
+(defun trelloel--read-oauth-token ()
+  (with-temp-buffer
+    (insert-file-contents trelloel--oauth-token-file)
+    (buffer-string)))
+
 
 (defun trelloel-get-board (id)
   (let* ((board-url (trelloel--request-url (concat "/board/" id)))
          (json-object-type 'plist))
     (trelloel--api-result board-url)))
 
-(defun trelloel-get-users-boards (app-name)
-  (let* ((oauth-token (trelloel--get-oauth-token app-name))
-         (request-url (trelloel---request-url
+(defun trelloel-get-users-boards ()
+  (let* ((oauth-token (trelloel--get-oauth-token))
+         (request-url (trelloel--request-url
                        "/members/my/boards"
-                       `("token" . ,oauth-token)))
+                       `(("token" . ,oauth-token))))
          (json-object-type 'plist))
     (trelloel--api-result request-url)))
 
