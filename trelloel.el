@@ -44,6 +44,7 @@
   :type 'string
   :group 'trelloel)
 
+
 (defun trelloel--read-json-buffer (json-buffer)
   (let ((parsed-json nil))
     (save-excursion
@@ -74,14 +75,14 @@
 (defun trelloel--api-result (api-url)
   (trelloel--read-json-buffer (url-retrieve-synchronously api-url)))
 
+(defvar trelloel--oauth-token-file
+  (expand-file-name
+   (concat user-emacs-directory "trelloel-oauth-token")))
+
 (defun trelloel--get-oauth-token ()
   (unless trelloel--oauth-token
     (trelloel--load-oauth-token))
   (trelloel--read-oauth-token))
-
-(defvar trelloel--oauth-token-file
-  (expand-file-name
-   (concat user-emacs-directory "trelloel-oauth-token")))
 
 (defun trelloel--load-oauth-token ()
   (unless (file-exists-p trelloel--oauth-token-file)
@@ -108,7 +109,6 @@
   (with-temp-buffer
     (insert-file-contents trelloel--oauth-token-file)
     (buffer-string)))
-
 
 (defun trelloel-get-board (id)
   (let* ((board-url (trelloel--request-url (concat "/board/" id)))
