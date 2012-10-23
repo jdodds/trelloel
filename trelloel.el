@@ -36,9 +36,6 @@
 
 (defvar trelloel--oauth-token nil "token used in oauth authentication")
 
-
-
-
 (defgroup trelloel nil
   "settings for working with the trello API")
 
@@ -126,8 +123,6 @@
                        `(("token" . ,oauth-token))))
          (json-object-type 'plist))
     (trelloel--api-result request-url)))
-
-
 
 (provide 'trelloel)
 
