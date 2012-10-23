@@ -4,8 +4,6 @@
 
 ;; Author: Jeremiah Dodds <jeremiah.dodds@gmail.com>
 ;; Keywords: comm
-;; Package-Requires: ((json "1.2"))
-;; Version: 0.1alpha
 
 ;; This file is not a part of GNU Emacs.
 
@@ -29,12 +27,11 @@
 ;;; Code:
 
 (require 'json)
+(require 'trelloel-oauth)
 
 (setq trelloel--application-key "dd89b2a1fb793c17fb2b72f01a4d3565"
       trelloel--base-api-url "https://api.trello.com"
       trelloel--api-version "1")
-
-(defvar trelloel--oauth-token nil "token used in oauth authentication")
 
 (defgroup trelloel nil
   "settings for working with the trello API")
@@ -43,7 +40,6 @@
   "Your username on trello."
   :type 'string
   :group 'trelloel)
-
 
 (defun trelloel--read-json-buffer (json-buffer)
   (let ((parsed-json nil))
@@ -74,41 +70,6 @@
 
 (defun trelloel--api-result (api-url)
   (trelloel--read-json-buffer (url-retrieve-synchronously api-url)))
-
-(defvar trelloel--oauth-token-file
-  (expand-file-name
-   (concat user-emacs-directory "trelloel-oauth-token")))
-
-(defun trelloel--get-oauth-token ()
-  (unless trelloel--oauth-token
-    (trelloel--load-oauth-token))
-  (trelloel--read-oauth-token))
-
-(defun trelloel--load-oauth-token ()
-  (unless (file-exists-p trelloel--oauth-token-file)
-    (trelloel--set-oauth-token))
-  (trelloel--read-oauth-token))
-
-(defun trelloel--set-oauth-token ()
-  (let ((auth-url
-         (concat "https://trello.com/1/authorize"
-                 (trelloel--request-parameters
-                  '(("expiration" . "never")
-                    ("response_type" . "token")
-                    ("scope" . "read,write"))))))
-    (browse-url auth-url))
-  (let ((token (read-from-minibuffer "Token: ")))
-    (trelloel--save-oauth-token token)))
-
-(defun trelloel--save-oauth-token (token)
-  (with-temp-buffer
-    (insert token)
-    (write-region (point-min) (point-max) trelloel--oauth-token-file)))
-
-(defun trelloel--read-oauth-token ()
-  (with-temp-buffer
-    (insert-file-contents trelloel--oauth-token-file)
-    (buffer-string)))
 
 (defun trelloel-get-board (id)
   (let* ((board-url (trelloel--request-url (concat "/board/" id)))
