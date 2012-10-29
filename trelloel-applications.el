@@ -70,4 +70,4 @@
   (load-file (trelloel-applications--library application)))
 
 (provide 'trelloel-applications)
-;;; trellol.el ends here
+;;; trellol-applications.el ends here
