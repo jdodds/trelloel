@@ -12,14 +12,6 @@
   (let ((cards (trelloel-tests-get-boards-cards trelloel-test-board-id)))
     (should (not (null cards)))))
 
-(ert-deftest trelloel-url-creation ()
-  (let ((key-parameter (concat "?key=" trelloel--application-key
-                               "&name=trelloel-tests")))
-    (should (equal
-             (concat key-parameter "&foo=bar&baz=quux")
-             (trelloel--request-parameters
-              "trelloel-tests"
-              '(("foo" . "bar")
-                ("baz" . "quux")))))
-    (should (equal key-parameter
-                   (trelloel--request-parameters "trelloel-tests")))))
+(ert-deftest trelloel-get-boards-lists ()
+  (let ((lists (trelloel-tests-get-boards-lists trelloel-test-board-id)))
+    (should (not (null lists)))))

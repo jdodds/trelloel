@@ -40,29 +40,34 @@
 (setq trelloel-applications--functions
       '(("get-board" . (id))
         ("get-members-boards" . ())
-        ("get-boards-cards" . (board))))
+        ("get-boards-cards" . (board))
+        ("get-boards-lists" . (board))))
 
 (defmacro trelloel-applications--create-alias (app f args )
   (let ((creating-sym (intern (concat app "-" f)))
-        (calling-sym (intern (concat "trelloel--" f))))
+        (calling-sym (intern (concat "trelloel-api--" f))))
    `(defun ,creating-sym ,args
       (,calling-sym ,app ,@args))))
-        
-(defun trelloel-applications--initialize (application)
-  (unless (file-exists-p (trelloel-applications--library application))
-    (with-temp-buffer
-      (dolist (info trelloel-applications--functions)
-        (insert
-         (prin1-to-string
-          (macroexpand
-           `(trelloel-applications--create-alias
-             ,application
-             ,(car info)
-             ,(cdr info))))))
-      (write-region
-       (point-min) (point-max)
-       (trelloel-applications--library application))))
+
+(defun trelloel-applications--write-app (application)
+  (with-temp-buffer
+    (dolist (info trelloel-applications--functions)
+      (insert
+       (prin1-to-string
+        (macroexpand
+         `(trelloel-applications--create-alias
+           ,application
+           ,(car info)
+           ,(cdr info))))))
+    (write-region
+     (point-min) (point-max)
+     (trelloel-applications--library application))))
+
+(defun trelloel-applications--initialize (application &optional force)
+  (when (or force
+            (not (file-exists-p (trelloel-applications--library application))))
+    (trelloel-applications--write-app application))
   (load-file (trelloel-applications--library application)))
-            
+
 (provide 'trelloel-applications)
 ;;; trellol.el ends here
