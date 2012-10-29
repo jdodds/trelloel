@@ -28,6 +28,7 @@
 
 (require 'json)
 (require 'trelloel-oauth)
+(require 'trelloel-applications)
 
 (setq trelloel--application-key "dd89b2a1fb793c17fb2b72f01a4d3565"
       trelloel--base-api-url "https://api.trello.com"
@@ -36,10 +37,12 @@
 (defgroup trelloel nil
   "settings for working with the trello API")
 
-(defcustom trelloel-username nil
+(defcustom trelloel-username "not set"
   "Your username on trello."
   :type 'string
   :group 'trelloel)
+
+
 
 (defun trelloel--read-json-buffer (json-buffer)
   (let ((parsed-json nil))
@@ -52,8 +55,9 @@
       (kill-buffer (current-buffer)))
     parsed-json))
 
-(defun trelloel--request-parameters (&optional parts)
-  (let ((parameters (concat "?key=" trelloel--application-key)))
+(defun trelloel--request-parameters (application &optional parts)
+  (let ((parameters (concat "?key=" trelloel--application-key
+                            "&name=" application)))
     (if parts
         (concat parameters (mapconcat
                             (lambda (item)
@@ -61,41 +65,44 @@
                             parts ""))
       parameters)))
 
-(defun trelloel--request-url (section &optional parts)
-  (let ((request-parameters (trelloel--request-parameters parts)))
+(defun trelloel--request-url (application section &optional parts)
+  (let ((request-parameters (trelloel--request-parameters application parts)))
     (concat trelloel--base-api-url
           "/" trelloel--api-version
           section
           request-parameters)))
 
-(defun trelloel--authorized-request-url (section &optional parts)
-  (let* ((oauth-token (trelloel--get-oauth-token)))
+(defun trelloel--authorized-request-url (application section &optional parts)
+  (let* ((oauth-token (trelloel-oauth--get-token application)))
     (trelloel--request-url
-     section
+     application section
      (append `(("token" . ,oauth-token)) parts))))
 
 
 (defun trelloel--api-result (api-url)
   (trelloel--read-json-buffer (url-retrieve-synchronously api-url)))
 
-(defun trelloel--authorized-api-result (section &optional parts)
+(defun trelloel--authorized-api-result (application section &optional parts)
   (let ((request-url (trelloel--authorized-request-url
-                      section
+                      application section
                       parts))
         (json-object-type 'plist))
     (trelloel--api-result request-url)))
 
-(defun trelloel-get-board (id)
+(defun trelloel--get-board (application id)
   (trelloel--authorized-api-result
+   application
    (concat "/board/" id)))
 
-(defun trelloel-get-members-boards ()
+(defun trelloel--get-members-boards (application)
   (trelloel--authorized-api-result
+   application
    "/members/my/boards"
    '(("filter" . "open"))))
 
-(defun trelloel-get-boards-cards (board)
+(defun trelloel--get-boards-cards (application board)
   (trelloel--authorized-api-result
+   application
    (concat "/boards/" board "/cards")))
 
 (provide 'trelloel)

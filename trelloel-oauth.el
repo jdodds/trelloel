@@ -27,41 +27,42 @@
 
 ;;; Code:
 
-(defvar trelloel--oauth-token nil "token used in oauth authentication")
 
-(defvar trelloel--oauth-token-file
+(defun trelloel-oauth--get-token (application)
+  (trelloel-oauth--load-token application))
+
+(defun trelloel-oauth--token-file (application)
   (expand-file-name
-   (concat user-emacs-directory "trelloel-oauth-token")))
+   (concat user-emacs-directory application "-oauth-token")))
 
-(defun trelloel--get-oauth-token ()
-  (unless trelloel--oauth-token
-    (trelloel--load-oauth-token))
-  (trelloel--read-oauth-token))
+(defun trelloel-oauth--load-token (application)
+  (let ((oauth-token-file (trelloel-oauth--token-file application)))
+    (unless (file-exists-p oauth-token-file)
+      (trelloel-oauth--set-token application))
+    (trelloel-oauth--read-token application)))
 
-(defun trelloel--load-oauth-token ()
-  (unless (file-exists-p trelloel--oauth-token-file)
-    (trelloel--set-oauth-token))
-  (trelloel--read-oauth-token))
-
-(defun trelloel--set-oauth-token ()
+(defun trelloel-oauth--set-token (application)
   (let ((auth-url
          (concat "https://trello.com/1/authorize"
                  (trelloel--request-parameters
-                  '(("expiration" . "never")
+                  application
+                  `(("expiration" . "never")
                     ("response_type" . "token")
                     ("scope" . "read,write"))))))
     (browse-url auth-url))
   (let ((token (read-from-minibuffer "Token: ")))
-    (trelloel--save-oauth-token token)))
+    (trelloel-oauth--save-token application token)))
 
-(defun trelloel--save-oauth-token (token)
+(defun trelloel-oauth--save-token (application token)
   (with-temp-buffer
     (insert token)
-    (write-region (point-min) (point-max) trelloel--oauth-token-file)))
+    (write-region
+     (point-min) (point-max)
+     (trelloel-oauth--token-file application))))
 
-(defun trelloel--read-oauth-token ()
+(defun trelloel-oauth--read-token (application)
   (with-temp-buffer
-    (insert-file-contents trelloel--oauth-token-file)
+    (insert-file-contents (trelloel-oauth--token-file application))
     (buffer-string)))
 
 (provide 'trelloel-oauth)
