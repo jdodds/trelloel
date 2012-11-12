@@ -38,8 +38,7 @@
     parsed-json))
 
 (defun trelloel-api--request-parameters (application &optional parts)
-  (let ((parameters (concat "?key=" trelloel--application-key
-                            "&name=" application)))
+  (let ((parameters (concat "?key=" trelloel--application-key)))
     (if parts
         (concat parameters (mapconcat
                             (lambda (item)
@@ -62,7 +61,10 @@
 
 
 (defun trelloel-api--api-result (api-url)
-  (trelloel-api--read-json-buffer (url-retrieve-synchronously api-url)))
+  (let ((url-request-method (if (boundp 'url-request-method)
+                                url-request-method
+                              "GET")))
+    (trelloel-api--read-json-buffer (url-retrieve-synchronously api-url))))
 
 (defun trelloel-api--authorized-api-result (application section &optional parts)
   (let ((request-url (trelloel-api--authorized-request-url
@@ -91,6 +93,23 @@
   (trelloel-api--authorized-api-result
    application
    (concat "/boards/" board "/lists")))
+
+(defun trelloel-api--create-card-on-list (application name description list-id)
+  (let ((url-request-method "POST"))
+    (trelloel-api--authorized-api-result
+     application "/cards"
+     `(("name" . ,name)
+       ("desc" . ,description)
+       ("idList" . ,list-id)))))
+
+(defun trelloel-api--delete-card (application card-id)
+  (let* ((url-request-method "DELETE")
+         (request-url (trelloel-api--authorized-request-url
+                       application (concat "/cards/" card-id)))
+         (response (url-retrieve-synchronously request-url)))
+    (kill-buffer response)))
+
+
 
 (provide 'trelloel-api)
 

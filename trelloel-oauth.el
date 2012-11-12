@@ -47,6 +47,7 @@
                  (trelloel--request-parameters
                   application
                   `(("expiration" . "never")
+                    ("&name=" . ,application)
                     ("response_type" . "token")
                     ("scope" . "read,write"))))))
     (browse-url auth-url))

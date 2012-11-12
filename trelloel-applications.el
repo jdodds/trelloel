@@ -32,16 +32,18 @@
   (expand-file-name
    (concat user-emacs-directory application "-trelloel.el")))
 
-(defun trelloel-applications-register (application)
+(defun trelloel-applications-register (application &optional force)
   (unless (file-exists-p (trelloel-oauth--token-file application))
     (trelloel-oauth--set-token application))
-  (trelloel-applications--initialize application))
+  (trelloel-applications--initialize application force))
 
 (setq trelloel-applications--functions
       '(("get-board" . (id))
         ("get-members-boards" . ())
         ("get-boards-cards" . (board))
-        ("get-boards-lists" . (board))))
+        ("get-boards-lists" . (board))
+        ("create-card-on-list" . (name description list-id))
+        ("delete-card" . (card-id))))
 
 (defmacro trelloel-applications--create-alias (app f args )
   (let ((creating-sym (intern (concat app "-" f)))
